@@ -10,7 +10,8 @@ const app = express();
 // morgan is a logging middleware and is to see the request data in the console
 // dev is just for how the login looks like . ucan use other as well check in the internet
 // here if the production mode changes to production this morgan middleware doesnot or wont work
-//console.log(process.env.NODE_ENV)
+
+//console.log(process.env.NODE_ENV);
 
 if (process.env.NODE_ENV === 'development') {
   // 3rd party middleware for login
