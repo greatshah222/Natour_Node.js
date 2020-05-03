@@ -7,6 +7,13 @@ const router = express.Router();
 // router.param('id', tourController.checkID);
 // create a check body middleware function
 
+// for best and cheapest tour route so run a middleware function first ao we can use the same callback function
+router
+  .route('/top-5-cheap')
+  .get(tourController.aliasTopTours, tourController.getAllTours);
+router
+  .route('/cheapest-tour')
+  .get(tourController.cheapestTour, tourController.getAllTours);
 router
   .route('/')
   .get(tourController.getAllTours)
