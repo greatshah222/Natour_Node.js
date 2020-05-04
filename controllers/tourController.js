@@ -226,3 +226,108 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
+exports.getTourStats = async (req, res) => {
+  try {
+    // agrregate is mongoDb feature but can be accessed in mongoose. We pass the array of stages inside aggregate to manipulate data. Doc passes through this stages
+    // match is to select or filter
+    // group using accumulator
+    const stats = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4 } },
+      },
+      // the pipeline goes through each and every document in database so for numTOurs wee add 1 so it will keep on increasing auto with the nr of document in the collection
+      {
+        $group: {
+          //_id: '$ratingsAverage',
+          _id: '$difficulty',
+          //_id:'null',
+          avgRating: { $avg: '$ratingsAverage' },
+          numTours: { $sum: 1 },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgPrice: { $avg: '$price' },
+          minprice: { $min: '$price' },
+          maxprice: { $max: '$price' },
+          totalPrice: { $sum: '$price' },
+        },
+      },
+      // here in the sort u need to use the name used to define in the $group and this is sorting will be done in the above €group document.
+      // here 1 is for ascendong and -1 is for descending
+      { $sort: { avgPrice: -1 } },
+      // { $sort: { avgPrice: 1 } },
+      // {
+      //   $match: {
+      //     // ne is not equal to
+      //     // here id will be whatever u defined in the $group id up in our case it will be difficulty
+      //     _id: { $ne: 'easy' },
+      //   },
+      // },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats: stats,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: 'Invalid data set',
+    });
+  }
+};
+// unwind breaks the document based on their input forexample we have 1 tour with 3 startdates in an array  and after unwind it will have 1 tour with 1 startdate and other startdate with the same tour below the first tour with only one startdate and not in array but as a string like name and duration property
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1;
+    const plan = await Tour.aggregate([
+      {
+        $unwind: '$startDates',
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-31`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          // we want to group them by month but we have all month year date and time so using handy date operator called month
+          // here we want to add number of tour in each month
+          _id: { $month: '$startDates' },
+          numTourStarts: { $sum: 1 },
+          // which tour so pushing name to array
+          tours: { $push: '$name' },
+        },
+      },
+      // to change the _id to month we use addField
+      // here the field name with $_id is changed to month
+      {
+        $addFields: { month: '$_id' },
+      },
+      // here the changed name is also added in the field but is not removed to remove change the $project and its value to 0 it is like opacity 1 is visible
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      {
+        $sort: { numTourStarts: -1 },
+      },
+      // for practise{ $limit: 6 },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        plan: plan,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      err: err,
+    });
+  }
+};
