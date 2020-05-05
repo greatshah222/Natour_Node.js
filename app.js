@@ -1,5 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
+const AppError = require('./utilis/appError');
+const gobalErrorhandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
@@ -64,7 +66,26 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
-
+// if the route is not defined we use middleware after our router cause if the route belonged to them it will not reach here. if it reached here it means the route is mistake.SO for all route use app.all and * means everything
+// ${req.originalUrl}   is the original input route by user
+app.all('*', (req, res, next) => {
+  // res.status(404).json({
+  //   status: 'fail',
+  //   message: `Can't find ${req.originalUrl} on the server`,
+  // });
+  // here the string inside the ERROR() will be error message property
+  // const err = new Error(`Can't find ${req.originalUrl} on the server`);
+  // err.status = 'fail';
+  // err.statusCode = 404;
+  // // here the next should call the error handler and not to other middleware cause its already an error
+  // next(err);
+  // using the AppError class to create the error
+  // message is inside the AppError
+  // here APPError extends Error so it can use builtin error
+  next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
+});
+// error handler from errorController
+app.use(gobalErrorhandler);
 // Server
 
 module.exports = app;

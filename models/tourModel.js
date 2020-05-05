@@ -1,5 +1,6 @@
 const slugify = require('slugify');
 const mongoose = require('mongoose');
+const validator = require('validator');
 // for slugs
 // here in the required section the required is set to true if it is false it will return the erro ras specified in the second parameter
 // the default means it will be set to 4.5 if not specified
@@ -12,6 +13,11 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true,
       trim: true,
+      maxlength: [40, 'A name cannot have more than 40 character'],
+      minlength: [10, 'A name must have atleast 10 character'],
+      // 3rd party plugin called validator.js
+      // not in use now
+      // validate: [validator.isAlpha, 'Only alpha charachter allowed'],
     },
     duration: {
       type: Number,
@@ -29,6 +35,8 @@ const tourSchema = new mongoose.Schema(
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'rating must be below or equal 5.0'],
     },
 
     ratingsQuantity: {
@@ -44,6 +52,17 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
+      // validators, the call back function has the acess to value that was input. validate can return either true or false
+      // if price is greater no error
+      // in the message the {VALUE} has the access to validator value it is mongoose property
+      // this property only works on creation of new document not on update
+      validate: {
+        validator: function (val) {
+          // this works only on CREATION OF NEW DOC NOT ON UPDATE
+          return val < this.price;
+        },
+        message: 'Discount price {VALUE} cannot be bigger than price',
+      },
     },
     // trim removes all the white space from beginning and end
     summary: {
@@ -114,6 +133,7 @@ tourSchema.pre('save', function (next) {
 // post middleware and it doesnot have access to this variable but instead the document that was just saved so doc in our case
 tourSchema.post('save', function (doc, next) {
   console.log(doc);
+
   next();
 });
 
