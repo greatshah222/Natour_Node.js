@@ -1,56 +1,69 @@
-const fs = require('fs');
+const User = require('./../models/usermodel');
 
-const users = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/users.json`)
-);
+const AppError = require('./../utilis/appError');
+const catchAsync = require('./../utilis/catchAsync');
+// here obj= req.body
+// allowedFields = email,name
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  // here req.body has both keys and values so keys will get us only email,name etc and if we want values we can write Object.values(obj)
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) {
+      // putting the new object with the current field from obj of current field
+      newObj[el] = obj[el];
+    }
+  });
+  return newObj;
+};
 
-exports.getAllUsers = (req, res) => {
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find();
   res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime,
+    status: 'sucess',
+    results: users.length,
     data: {
       users: users,
     },
   });
-};
-
-exports.getUser = (req, res) => {
-  //console.log(req.params.id);
-  const id = req.params.id * 1;
-  if (id > users.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'User Not found Invalid id',
-    });
+});
+// we have differnet place for updating the userdetail and password
+exports.updateMe = catchAsync(async (req, res, next) => {
+  // 1 create an error if user try to update and pwd from here
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(new AppError('You cannot modify password from here', 400));
   }
-  const user = users.find((el) => el._id === id);
+
+  // here we cannot use user.save() because it will have validation error and also we cannot remove the validation cause we need to check the validation as well
+
+  // await user.save();
+  // 2 update user document
+  // so we need to pass here both our id and body in the parameter
+  // we  dont want to update req.body cause user can change the role as well
+  // can only update name and email
+
+  const filteredBody = filterObj(req.body, 'name', 'email');
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true,
+  });
 
   res.status(200).json({
     status: 'success',
-    message: 'done',
+    data: {
+      user: updatedUser,
+    },
   });
-};
-
-exports.createUser = (req, res) => {
-  newId = users.length + 1;
-  console.log(newId);
-  res.status(200).json({
-    status: 'success',
-    message: 'done',
-  });
-};
-exports.updateUser = (req, res) => {
-  console.log(req.params);
-};
-exports.deleteUser = (req, res) => {
-  if (req.params.id * 1 > users.length) {
-    return res.staur(401).json({
-      status: 'fail',
-      message: 'Invalid user Id ',
-    });
-  }
+});
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  // active will not be shown to the user cause in the schema it has been set the property of select to false like password
+  await User.findByIdAndUpdate(req.user.id, { active: false });
   res.status(204).json({
     status: 'success',
     data: null,
   });
-};
+});
+exports.getUser = (req, res) => {};
+
+exports.createUser = (req, res) => {};
+exports.updateUser = (req, res) => {};
+exports.deleteUser = (req, res) => {};

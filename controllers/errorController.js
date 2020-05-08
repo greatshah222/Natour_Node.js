@@ -24,6 +24,14 @@ const sendErrorDev = (err, res) => {
     stack: err.stack,
   });
 };
+const handleJsonValidationErrorDB = (err) => {
+  const message = ` Invalid Token. Please login to continue`;
+  return new AppError(message, 401);
+};
+const handleJsonExpiredTokenValidationErrorDB = (err) => {
+  const message = `Token Expired. Please login again to continue`;
+  return new AppError(message, 401);
+};
 const sendErrorProd = (err, res) => {
   // error is operational means all our error handler willhave this value as true and if there  is a server error it will not have this property and finally we can send our custom error of internalserver error and also we dont want to leak error details to client
   if (err.isOperational) {
@@ -62,6 +70,10 @@ module.exports = (err, req, res, next) => {
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
+    if (error.name === 'JsonWebTokenError')
+      error = handleJsonValidationErrorDB(error);
+    if (error.name === 'TokenExpiredError')
+      error = handleJsonExpiredTokenValidationErrorDB(error);
 
     sendErrorProd(error, res);
   }

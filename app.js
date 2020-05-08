@@ -1,11 +1,28 @@
 const express = require('express');
 const morgan = require('morgan');
+
+const rateLimit = require('express-rate-limit');
+// it is to limit the nr of request coming from the dame ip address for securuty it will block if there is too many request
+// chack the documentation
+// https://github.com/nfriedly/express-rate-limit
+// npm i express-rate-limit
+const helmet = require('helmet');
+// npm i helmet
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+// npm i hpp for not allowing parameter pollution
+
 const AppError = require('./utilis/appError');
 const gobalErrorhandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
 const app = express();
+//  Set Security HTTP headers  always at the top of the page after using express
+// you can again check it in the header there are many added headers for security
+// https://github.com/helmetjs/helmet
+app.use(helmet());
 
 // Middleware
 // we have access to env variable even here because its still in the process and is available in all file
@@ -23,18 +40,65 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // it is middleware and the step where the request goes through
-app.use(express.json());
+// for limiting the nr of request it will apply to all the middleware that is why it is in app.js
+
+//  apply to all requests and limit request from same API
+
+const limiter = rateLimit({
+  max: 100, // limit each IP to 100 requests per windowMs(window millisecond)
+  windowMs: 60 * 60 * 1000, // 1 hour
+  message: 'Too many request from this IP. Please try again in an hour',
+  // you can check this in the header of response
+});
+// affect routes starting with api
+app.use('/api', limiter);
+// Body Parser, reading data from the body into req.body
+// here we are limiting the data to 10kb not necessary but just for protection
+app.use(express.json({ limit: '10kb' }));
+
+// clean the data i.e data sanitization against NoSQL query injection
+// for example we know the pwd of some account but not the user_id we can type {"gt":""} to gain access cause this will always be true '
+// to solve this problem
+// npm i express-mongo-sanitize
+app.use(mongoSanitize());
+
+// data sanitization against XSS clean user input from any html malicious code
+//npm i xss-clean
+app.use(xss());
+
+// for not allowing paramter pollution. it should be used at the end
+// for instance if we say sort by price and sort by rating it does not make sense cause we want only one sort property at the time so
+// app.use(hpp());
+// but in some case we want 2 property like duration=2 and duration=9 so we need to whitelist some parameter which means it will allow this property
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsAverage',
+      'ratingsQuantity',
+      'maxGroupSize',
+      'price',
+      'difficulty',
+    ],
+  })
+);
+
+// Serving static files
 app.use(express.static(`${__dirname}/public`));
 // the middleware always has the incoming request and sends the response to next middleware step by step so it has all the req,res and next parameter. next paramter is third parameter and u can name whatever but the convention is to name next as req, res
 // creating our own middleware for test purpose
+// test middleware
 app.use((req, res, next) => {
   console.log(' Hello from the middleware 👑');
   // we need to call next else the request will be stocked
   next();
 });
 // add current time to the object .just practising middleware
+// test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  //console.log(req.headers);
+
   next();
 });
 
@@ -84,7 +148,7 @@ app.all('*', (req, res, next) => {
   // here APPError extends Error so it can use builtin error
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
 });
-// error handler from errorController
+// error handler from errorController which will be used by app
 app.use(gobalErrorhandler);
 // Server
 
