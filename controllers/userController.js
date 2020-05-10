@@ -42,6 +42,10 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   // can only update name and email
 
   const filteredBody = filterObj(req.body, 'name', 'email');
+  //   Model.findByIdAndUpdate(id, { name: 'jason bourne' }, options, callback)
+
+  // // is sent as
+  // Model.findByIdAndUpdate(id, { $set: { name: 'jason bourne' }}, options, callback)
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,

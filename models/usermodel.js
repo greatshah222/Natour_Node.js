@@ -132,6 +132,7 @@ userSchema.methods.createPasswordResetToken = function () {
   // creating token of 32 bytes using builtin node module called crypto
   // we  want to save this in db for security so hashing it
   // sha256 is algorithm and update(whatto change into hash) digest(change in hexadecimal like in the string )
+
   const resettoken = crypto.randomBytes(32).toString('hex');
   // saving the token in db
   this.passwordResetToken = crypto

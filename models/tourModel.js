@@ -1,6 +1,7 @@
 const slugify = require('slugify');
 const mongoose = require('mongoose');
 const validator = require('validator');
+const User = require('./usermodel');
 // for slugs
 // here in the required section the required is set to true if it is false it will return the erro ras specified in the second parameter
 // the default means it will be set to 4.5 if not specified
@@ -93,6 +94,55 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // geojson to specify geospatial data
+    // object will be an embedded object that is why we are specifying it differently than above which are basicaaly Schema
+    startLocation: {
+      // mangoDb supports geospatial data out of the box
+      // geospatial data means specifying location using latitude and longitude
+      // dont do startLocation:{type:string}
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+        // we can also define other geometry like polygon,lines etc instead of point
+        // but use point it is easy
+      },
+      // we need array of coordinates which is longitude first and then latitude
+      // usually it is other way around for example in google map it will be first latitude and then longitude
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    // now we are creating embedded document. We are specifying an array of object which will create a brand new document inside the parent document.
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // we are trying to embed guides(user) and tour so we are creating an array of user id which will be saved here
+    // guides: Array,// use this in embedded method
+    // the idea is that tours and user will remain completely seperate entity so we just want to save the user id instead of whole user what we were doing in the embedded method in our commented middleware below. WHen we query the tour we want to automatically get the access to the tour guides without being saved on the tour document itself and that is called refrencing
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        /*
+ we even dont need to import the User model to use this one. It will be saved like this
+        "guides": [
+          "5eb56dee3109916fd353f8dc",
+          "5eb56df53109916fd353f8dd"
+      ],
+      */
+      },
+    ],
   },
 
   // for duration weeks
@@ -123,6 +173,15 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+// embedding user id(guides) to tour
+// mao will put it in guides array and this guides array is full of promises and we need to run this promises
+// we are using promise.all cause guidesPromises is an array of promise
+// this is just an example of using embedding and this might be bad for our application in this context cause if the user role is changed than we have to update even in the tour collection so we will be using reference way or normalized may
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
 
 // multiple pre middleware
 tourSchema.pre('save', function (next) {
@@ -145,11 +204,39 @@ tourSchema.post('save', function (doc, next) {
 // this here is query object
 // the problem with this function is it will not be shown in getAllTours but it might be shown in get single tour or update tour when we use other method like findOne. Actually findById is also findOne so we have to carry this operation in all the find method by using regular expression
 // this regular expression means all the query starting with find
+
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
 
   this.start = Date.now();
 
+  next();
+});
+// tour.findById is like Tour.findOne({_id:req.params.id})
+// we want to fill up this model with guides actual data.It will be in the query but not in the actual DB
+// here .populate(what field) will add the whole object not just what is specified in Db
+/**
+   It will add this 
+
+  {
+                    "role": "user",
+                    "passwordChangedAt": "2020-05-08T14:33:30.204Z",
+                    "_id": "5eb56dee3109916fd353f8dc",
+                    "name": "bishal shah",
+                    "email": "test2@mail.com",
+                    "__v": 0
+                },
+                instead of "5eb56dee3109916fd353f8dc"f
+   */
+// here in the populate path means name and we want to remove the property of (passwordChangedAt and __v so select as minus)
+// populates create new query so it may decrease perfomance so remember to use only in small application
+// we have to add this populate in other query as well so it is good idea to put it in query middleware
+tourSchema.pre(/^find/, function (next) {
+  // it will populate
+  this.find().populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 // after the query has executed

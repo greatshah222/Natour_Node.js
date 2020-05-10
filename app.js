@@ -17,6 +17,7 @@ const AppError = require('./utilis/appError');
 const gobalErrorhandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 
 const app = express();
 //  Set Security HTTP headers  always at the top of the page after using express
@@ -130,6 +131,8 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/reviews', reviewRouter);
+
 // if the route is not defined we use middleware after our router cause if the route belonged to them it will not reach here. if it reached here it means the route is mistake.SO for all route use app.all and * means everything
 // ${req.originalUrl}   is the original input route by user
 app.all('*', (req, res, next) => {

@@ -22,9 +22,7 @@ mongoose
     // put con in then to get con.connections result
     console.log('db  connected for importing or deleting files');
   });
-const tour = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
-);
+const tour = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 const importData = async () => {
   try {
     await Tour.create(tour);

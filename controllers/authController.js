@@ -35,8 +35,10 @@ const createSendToken = (user, statusCode, res) => {
     cookieOptions.secure = true;
   }
   res.cookie('jwt', token, cookieOptions);
-  // when we signup there will be password in the data so to hide it
+  // when we signup there will be password in the data so to hide it and also user active or not
   user.password = undefined;
+  user.active = undefined;
+
   res.status(statusCode).json({
     status: 'success',
     token: token,
@@ -130,6 +132,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   // here we will call the function promisify(jwt.verify) which will reurn the promise (token, process.env.JWT_SECRET)
   // we can do await because the parent function is already async function
   // it will auto give the errror and send the error auto to error middlware cause promisify is of node we dont have to send it to our errorglobalHandler
+  // we are finding our payload which is with iat and exp
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   // remember our payload is our id so it console.logs our id alsong with iat(creation date ) and exp(experiation-date)
   // { id: '5eb2a126609aee21646f0b85', iat: 1588774567, exp: 1588860967 }
@@ -155,6 +158,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   //     );
   //   }
   // }
+  // if it returns true that means the pwd was changed after the JWT WAS ISSUED WHICH MEANS AN ERROR
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError('User recently changed password! Please log in again.', 401)
@@ -231,6 +235,7 @@ exports.forgotPassword = async (req, res, next) => {
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1 get user based on token
   // token is specified in the req.url
+  // token sent to user was in plain text so wee need to hash it compare it with DB
 
   const hashedToken = crypto
     .createHash('sha256')
@@ -271,7 +276,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 // ask for pwd again before updating although user is logged in
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1 get user from the collection
-
+  // it gets req.user.id from previous middleware
   const user = await await User.findById(req.user.id).select('+password');
   // 2 check if posted pwd is correct
 
