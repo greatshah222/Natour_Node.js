@@ -2,12 +2,20 @@ const express = require('express');
 const tourController = require('./../controllers/tourController');
 const authController = require('./../controllers/authController');
 
-const router = express.Router();
-// this middlewar eis for our parameter like in our case id
-// here this middleware also holds the 4th parameter called val which holds the value of id . and remember this middleware is for only tour not user cause this is specified on this page
-// router.param('id', tourController.checkID);
-// create a check body middleware function
+const reviewRouter = require('./../routes/reviewRoutes');
 
+const router = express.Router();
+// // POST /tour/tour_id/reviews
+// // Get /tour/tour_id/reviews
+// router
+//   .route('/:tourId/reviews')
+//   .post(
+//     authController.protect,
+//     authController.restrictTo('user'),
+//     reviewController.createReviews
+//   );
+// if there is any url with '/:tourId/reviews' it will use the reviewRouter same like mounting router in app.js
+router.use('/:tourId/reviews', reviewRouter);
 // for best and cheapest tour route so run a middleware function first ao we can use the same callback function
 router
   .route('/top-5-cheap')

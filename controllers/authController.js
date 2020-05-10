@@ -8,6 +8,7 @@ const catchAsync = require('./../utilis/catchAsync');
 const sendEmail = require('./../utilis/email');
 
 const User = require('./../models/usermodel');
+
 // jwt.sign(payload, secretOrPrivateKey, [options, callback])
 // (Asynchronous) If a callback is supplied, the callback is called with the err or the JWT.
 const signToken = (id) => {

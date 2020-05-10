@@ -155,8 +155,23 @@ const tourSchema = new mongoose.Schema(
 // we used normal function because we need this keyword instead of arrow function
 // we cannot use virtual property in query be aue technically they are not part of the databse
 // now we can edit it to add slugs
+// u cant query virtual since they are not saved to Db
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+/**
+ Virtual Property we are adding the review as a virtual property to tour model 
+ */
+// .virtual(name of virtual field eg here is review) then object of options
+// foreignField: tour is the foreign field and it is saved in this name
+// localField:and id is localfield since it matches foreignField
+//  Mongoose will populate documents from the model in ref whose foreignField matches this document's localField
+// populate only in single tour but not on allTour page
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 // document middleware . There are 4 types of middleware namely document,query,model and aggregate

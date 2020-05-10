@@ -39,13 +39,15 @@ const reviewSchema = new mongoose.Schema(
 // this will add 2 query which means it will decrease performance
 // how are we going to access reviews on the tour cause we did parent refrencing here . The reviews is pointing toward the tour but not tour pointing toward review
 // tour doesnot know about review so to solve this problem to do child refrencing on tour but it will grow indefinitly
-// so the solution is virtual populate we can actullay populate the tour with review without keeping the array of
+// so the solution is virtual populate, we can actullay populate the tour with review without keeping the array of id on tour
+// tour is being populated with reviews and reviews again gets populated with tour and user and tour is also getting populated with guides. so chain of 3 populates. turn off populating tour with reviews
+// conslusion single tour is populating reviews instead of reviews populating tour
 reviewSchema.pre(/^find/, function (next) {
   this.find()
-    .populate({
-      path: 'tour',
-      select: 'name',
-    })
+    // .populate({
+    //   path: 'tour',
+    //   select: 'name',
+    // })
     .populate({
       path: 'user',
       select: 'name photo',

@@ -2,6 +2,7 @@ const User = require('./../models/usermodel');
 
 const AppError = require('./../utilis/appError');
 const catchAsync = require('./../utilis/catchAsync');
+const factory = require('./handlerFactory');
 // here obj= req.body
 // allowedFields = email,name
 const filterObj = (obj, ...allowedFields) => {
@@ -16,16 +17,17 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: 'sucess',
-    results: users.length,
-    data: {
-      users: users,
-    },
-  });
-});
+exports.getAllUsers = factory.getAll(User);
+// exports.getAllUsers = catchAsync(async (req, res, next) => {
+//   const users = await User.find();
+//   res.status(200).json({
+//     status: 'sucess',
+//     results: users.length,
+//     data: {
+//       users: users,
+//     },
+//   });
+// });
 // we have differnet place for updating the userdetail and password
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1 create an error if user try to update and pwd from here
@@ -66,8 +68,8 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-exports.getUser = (req, res) => {};
-
-exports.createUser = (req, res) => {};
-exports.updateUser = (req, res) => {};
-exports.deleteUser = (req, res) => {};
+exports.getUser = factory.getOne(User);
+// only for admin to create/update/delete User using this route
+// validation might not work and pwd update not possible
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);
