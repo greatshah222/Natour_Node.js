@@ -336,3 +336,98 @@ exports.getMonthlyPlan = async (req, res) => {
     });
   }
 };
+
+// router.route(
+//   '/tours-within/:distance/center/:latlng/unit/:unit',
+//   tourController.getToursWithin
+// );
+// /tours-within/233/center/-40,56/unit/km
+// {startLocation: {$geoWithin: { $centerSphere: [ [ -116.44538956715195, 37.025387343264356 ], 0.03225569902294346 ]}}}
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  // now we cag letlng now again getting them seperately
+  const [lat, lng] = latlng.split(',');
+  // radius is radian which is accepted by mongoDb so converting it
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+  if (!lat || !lng) {
+    return next(new AppError('Please provide latitude and longitude', 400));
+  }
+  // instead of using math operator like startLocation: {$gt=200}
+  // we use geoSpatial operator $geoWithin
+  // lng first and then lat in geoJson
+  //  geoWithin Selects documents with geospatial data that exists entirely within a specified shape.
+  //To specify a GeoJSON polygons or multipolygons using the default coordinate reference system (CRS), use the following syntax:
+  /**
+   
+{
+   <location field>: {
+      $geoWithin: {
+         $geometry: {
+            type: <"Polygon" or "MultiPolygon"> ,
+            coordinates: [ <coordinates> ]
+         }
+      }
+   }
+}
+  */
+  // The available shape operators are:
+
+  // $box,
+  // $polygon,
+  // $center (defines a circle), and
+  // $centerSphere (defines a circle on a sphere).
+
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+  console.log(distance, lat, lng, unit);
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+// how far is the tour from your place
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  // now we cag letlng now again getting them seperately
+  const [lat, lng] = latlng.split(',');
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    return next(new AppError('Please provide latitude and longitude', 400));
+  }
+  const distances = await Tour.aggregate([
+    // for geospatial aggregation  there is only one  stage and is called $geonear and always needs to be the first stage and one of the index should be geospatial index that is why in index we put 2dsphere in startLocation
+    // https://docs.mongodb.com/manual/reference/operator/aggregation/geoNear/#pipe._S_geoNear
+    {
+      $geoNear: {
+        // near: from which the distance needs to be calculated  and specify as geoJson. lng and lat *1 to convert into number
+        // although this seems to the first stage in the pipeline we get an error that $geoNear is only valid as the first stage in a pipeline.",BEcause in the tour model we have already defined a aggregate pipeline that runs before this pipeline. SO remove that
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        // distance will be name shown in the tour
+        distanceField: 'distance',
+        distanceMultiplier: multiplier, // to change into km
+      },
+    },
+    // in the result it gives all the detail nut we want only name and distance so we can remove it by using the project stage and inside we define the name of the field we want to keep and specify value of 1
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+        startLocation: 1,
+      },
+    },
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
+});

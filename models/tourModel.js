@@ -186,6 +186,9 @@ tourSchema.virtual('reviews', {
 // there is a huge benifit of using index so try to use the index in any application
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+// for geospitial index should be 2d plane
+tourSchema.index({ startLocation: '2dsphere' });
+
 // document middleware . There are 4 types of middleware namely document,query,model and aggregate
 // MIDDLEWARE can be defined in pre and post of an event
 // it runs before only .save() command and.create()
@@ -286,12 +289,13 @@ tourSchema.post(/^find/, function (docs, next) {
 //   _model: Model { Tour },
 //   options: {}
 // }
-tourSchema.pre('aggregate', function (next) {
-  // unhift adds in the first element of the array and aggreggate is array
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  //console.log(this);
-  next();
-});
+// we have to remove this middleware because of geospatial aggregate which needs to be first stage of aggregate
+// tourSchema.pre('aggregate', function (next) {
+//   // unhift adds in the first element of the array and aggreggate is array
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this);
+//   next();
+// });
 // To use our schema definition, we need to convert our tourSchema into a Model we can work with. To do so, we pass it into mongoose.model(modelName, schema):
 // uppercase on modelname and variable
 const Tour = mongoose.model('Tour', tourSchema);
