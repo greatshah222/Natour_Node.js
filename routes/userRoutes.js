@@ -17,7 +17,12 @@ router.patch(
 router.patch('/updateMe', authController.protect, userController.updateMe);
 router.delete('/deleteMe', authController.protect, userController.deleteMe);
 
-router.route('/').get(authController.protect, userController.getAllUsers);
+router
+  .route('/getme')
+  .get(authController.protect, userController.getMe, userController.getUser);
+// all route  from here will be restricted to admin and needs to be logged in
+router.use(authController.protect, authController.restrictTo('admin'));
+router.route('/').get(userController.getAllUsers);
 router
   .route('/:id')
   .get(userController.getUser)

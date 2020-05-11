@@ -5,7 +5,8 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: './config.env' });
 const Tour = require('./../../models/tourModel');
-
+const User = require('./../../models/usermodel');
+const Review = require('./../../models/reviewsModel');
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
@@ -23,9 +24,17 @@ mongoose
     console.log('db  connected for importing or deleting files');
   });
 const tour = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
+const user = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, 'utf-8'));
+const review = JSON.parse(
+  fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8')
+);
 const importData = async () => {
   try {
     await Tour.create(tour);
+    // turning passwordConfirm off
+    await User.create(user, { validateBeforeSave: false });
+    await Review.create(review);
+
     console.log('database imported succesfully');
   } catch (err) {
     console.log(err);
@@ -35,6 +44,8 @@ const importData = async () => {
 const deleteData = async () => {
   try {
     await Tour.deleteMany();
+    await User.deleteMany();
+    await Review.deleteMany();
     console.log('database deleted succesfully');
   } catch (err) {
     console.log(err);

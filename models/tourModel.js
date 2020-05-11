@@ -38,6 +38,8 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'rating must be below or equal 5.0'],
+      // set is callled each time a value is set to this function
+      set: (val) => Math.round(val * 10) / 10, // 4.666 to 5  but we want 4.7 so val*10 /10
     },
 
     ratingsQuantity: {
@@ -174,6 +176,16 @@ tourSchema.virtual('reviews', {
   localField: '_id',
 });
 
+// creating index so that the db does not have to browse through all the document to give the index
+// example if we want fields of rating of 4 it has to search through all the document. but if we have index it will have to search through only index. The reason findById is fast and relevant beacause it has its own index. You can check index in mongoDB compass.
+// for example we are settting the index field on price in our this app
+// price:1 means in ascending order wheras -1 in descending order
+// this will reduce the number of document examined
+//tourSchema.index({ price: 1 });
+// compund index when user query for 2 fields at sametime
+// there is a huge benifit of using index so try to use the index in any application
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
 // document middleware . There are 4 types of middleware namely document,query,model and aggregate
 // MIDDLEWARE can be defined in pre and post of an event
 // it runs before only .save() command and.create()

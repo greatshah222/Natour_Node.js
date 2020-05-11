@@ -82,6 +82,8 @@ exports.getAll = (Model) =>
       .limitFields()
       .paginate();
     const doc = await features.query;
+    // .explain is to set the document total query and other stuff in postman
+    //const doc = await features.query.explain();
     res.status(200).json({
       status: 'sucess',
       results: doc.length,

@@ -68,6 +68,11 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+// for user rertiving their own data
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 exports.getUser = factory.getOne(User);
 // only for admin to create/update/delete User using this route
 // validation might not work and pwd update not possible
