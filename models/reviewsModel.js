@@ -18,8 +18,9 @@ const reviewSchema = new mongoose.Schema(
       default: Date.now(),
     },
     // review belongs to the tour and it also has its user
-    // Both user and tour are the parents of the review and we out it here cause we dont want big array in the parent element. There might be 100s of 1000s of reviews.so use parent refrencing
+    // Both user and tour are the parents of the review and we put it here cause we dont want big array in the parent element. There might be 100s of 1000s of reviews.so use parent refrencing
     // here the review doc knows what tour it belongs to but the tour doesnot know
+    // we did parent refrencing here because we dont know how much the array will grow but in the guides we did child refrencing because we know 1 tour cannot have many(like 100s ) of guide
     tour: {
       type: mongoose.Schema.ObjectId,
       ref: 'Tour',
@@ -45,6 +46,7 @@ reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 // so the solution is virtual populate, we can actullay populate the tour with review without keeping the array of id on tour
 // tour is being populated with reviews and reviews again gets populated with tour and user and tour is also getting populated with guides. so chain of 3 populates. turn off populating tour with reviews
 // conslusion single tour is populating reviews instead of reviews populating tour
+// we have to remove one of the populate cause the tour is being populated with review and review is again being populated with tour and user
 reviewSchema.pre(/^find/, function (next) {
   this.find()
     // .populate({
@@ -98,6 +100,8 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
 // use post cause it might not be saved in db if we use pre
 // post middleware doesnot have access to next
 // this function runs on save but not on update and delete
+// calling the calculateAverage on save
+
 reviewSchema.post('save', function () {
   // this points to current review
   // since the above function is available on model
@@ -105,14 +109,16 @@ reviewSchema.post('save', function () {
   //  Review.calcAverageRatings(this.tour);
   this.constructor.calcAverageRatings(this.tour);
 });
-// findOneand update and Findoneand delete is a query middleware and we dont have access to query and this point of time
+// findOneand update and Findoneand delete is a query middleware and there is no document middleware and we dont have access to query at this point of time
+// we have to get access to current review from where we can extract tourId and then calculate the statistics
 // this keyword points to current query but we want to access the current review documwent. that is why we have to access the document by executin query so findOne
 // this findOne gets the data from db before it was saved so old data but here we just need id.we cannot execute  calcAverageRatings here cause it will be for old data.we have to use the post to modify and persist the data but if we use post we cannot execute in the first place so run two middleware and pass the data from pre to post using this.r(r can be named anything)
 // for update and delete
 reviewSchema.pre(/^findOneAnd/, async function (next) {
   // to pass this data to the post middleware we have to create a property called this so this.r
+  //console.log(this);
   this.r = await this.findOne();
-  // console.log(this.r);
+  //console.log(this.r);
   next();
 });
 // now we can use post in the above middleware

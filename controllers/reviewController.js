@@ -52,4 +52,5 @@ exports.setTourUserIds = (req, res, next) => {
 exports.createReview = factory.createOne(Review);
 exports.deleteReview = factory.deleteOne(Review);
 exports.updateReview = factory.updateOne(Review);
+// only to get 1 specific review
 exports.getReview = factory.getOne(Review, { path: 'reviews' });

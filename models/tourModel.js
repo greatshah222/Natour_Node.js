@@ -116,6 +116,8 @@ const tourSchema = new mongoose.Schema(
       description: String,
     },
     // now we are creating embedded document. We are specifying an array of object which will create a brand new document inside the parent document.
+    // to embed data it needs to be in array
+
     locations: [
       {
         type: {
@@ -132,6 +134,7 @@ const tourSchema = new mongoose.Schema(
     // we are trying to embed guides(user) and tour so we are creating an array of user id which will be saved here
     // guides: Array,// use this in embedded method
     // the idea is that tours and user will remain completely seperate entity so we just want to save the user id instead of whole user what we were doing in the embedded method in our commented middleware below. WHen we query the tour we want to automatically get the access to the tour guides without being saved on the tour document itself and that is called refrencing
+    // we are refrencing and this will not be saved in db actually. Only get it in the query
     guides: [
       {
         type: mongoose.Schema.ObjectId,
@@ -165,7 +168,7 @@ tourSchema.virtual('durationWeeks').get(function () {
 /**
  Virtual Property we are adding the review as a virtual property to tour model 
  */
-// .virtual(name of virtual field eg here is review) then object of options
+// .virtual(name of virtual field eg here is reviews) then object of options
 // foreignField: tour is the foreign field and it is saved in this name
 // localField:and id is localfield since it matches foreignField
 //  Mongoose will populate documents from the model in ref whose foreignField matches this document's localField

@@ -1,0 +1,23 @@
+doctype html
+html
+    head
+        title Natours #{tour}
+        //- #{tour} is called interpolation it is js but it needs to be added directly like title=tour and again there is a string infront of it which is not  js so it can be called by using #{}
+        link(rel='stylesheet' href='css/style.css')
+        link(rel='shortcut icon' type='image/png'  href='img/favicon.png')
+
+    body
+        //- this is called buffer code
+        h1= tour
+        h2= user.toUpperCase()
+        // h1 The park Camper.This comment  will be visible in html
+        //- h1 The park Camper.This comment will not  be visible in html
+        - const x =9;
+        //- this is called unbuffered code. -should be written
+        h2=2*x
+
+        p This is just some text
+
+
+
+

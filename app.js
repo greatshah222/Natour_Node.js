@@ -1,3 +1,5 @@
+const path = require('path');
+
 const express = require('express');
 const morgan = require('morgan');
 
@@ -20,6 +22,14 @@ const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 
 const app = express();
+// using pug for rendiering htm pages
+app.set('view engine', 'pug');
+// directory name should be specified in path.join (__dirname,'folderName')
+app.set('views', path.join(__dirname, 'views'));
+
+// Serving static files
+app.use(express.static(path.join(__dirname, 'public')));
+
 //  Set Security HTTP headers  always at the top of the page after using express
 // you can again check it in the header there are many added headers for security
 // https://github.com/helmetjs/helmet
@@ -84,8 +94,6 @@ app.use(
   })
 );
 
-// Serving static files
-app.use(express.static(`${__dirname}/public`));
 // the middleware always has the incoming request and sends the response to next middleware step by step so it has all the req,res and next parameter. next paramter is third parameter and u can name whatever but the convention is to name next as req, res
 // creating our own middleware for test purpose
 // test middleware
@@ -128,6 +136,17 @@ app.use((req, res, next) => {
 // using the router to break the route into indicidual file so they dont break the code when writting big long code
 
 // tourROuter and user  here is a middleware so that we can use here app.use like any other middleware enlisted above
+
+// rendering html
+// get(url) and instead of json use render(name of file no extension)
+// node will go into the folder mentioned above that is views and then go to base
+// the variabe passed from here like the tour and user called locals in the pug data
+app.get('/', (req, res) => {
+  res.status(200).render('base', {
+    tour: 'The Forest Hiker',
+    user: 'Bishal',
+  });
+});
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
