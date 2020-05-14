@@ -1,4 +1,12 @@
 extends base
+include _reviewCard
+//- whatever we write in the block head will be appended not overwritten like other block cause we have specified append(at the end)
+//- for mapbox useing the script u need to login and get it from there
+block append head
+    script(src='https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js')
+    link(href='https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css' rel='stylesheet')
+
+    //-script(src='/js/mapBox.js')
 
 //- ussing the mixin process to follow dry  label is description
 //- use mixin nameoffunction(parameter which needs to pass down)
@@ -14,7 +22,7 @@ block content
     section.section-header
         .header__hero
             .header__hero-overlay &nbsp;
-            img.header__hero-img(src=`/img/tours/${tour.coverImage}`, alt=`${tour.name}`)
+            img.header__hero-img(src=`/img/tours/${tour.imageCover}`, alt=`${tour.name}`)
         .heading-box    
             h1.heading-primary
                 span=tour.name
@@ -39,17 +47,17 @@ block content
                     +overviewBox('Difficulty',`${tour.difficulty}`,'trending-up')
                     +overviewBox('Participant',`${tour.maxGroupSize}`,'user')
                     +overviewBox('Rating',`${tour.ratingsAverage}/5`,'star')
-           
+
                 .overview-box__group
                     h2.heading-secondary.ma-bt-lg Your tour guides
                     each guide in tour.guides
-                            .overview-box__detail
-                                img.overview-box__img(src=`/img/users/${guide.photo}`, alt=`${guide.name}`)
-                                - if(guide.role ==='lead-guide')
-                                    span.overview-box__label Lead guide
-                                - if(guide.role ==='guide')
-                                    span.overview-box__label  Tour guide    
-                                span.overview-box__text=guide.name     
+                        .overview-box__detail
+                            img.overview-box__img(src=`/img/users/${guide.photo}`, alt=`${guide.name}`)
+                            - if(guide.role ==='lead-guide')
+                                span.overview-box__label Lead guide
+                            - if(guide.role ==='guide')
+                                span.overview-box__label  Tour guide    
+                            span.overview-box__text=guide.name     
 
         .description-box    
             h2.heading-secondary.ma-bt-lg=`About ${tour.name}`
@@ -58,40 +66,31 @@ block content
             each p in paragraph 
                 p.description__text= p
 
-    //- in the pug loop we can define a sceond variable which is called index  which is here called i           
+    //- in the pug loop we can define a sceond variable which is called index  which is here called i  
+    //- our location is an array so transferring into string and there data-location is the attribute property by using JSON.stringify so it will be div id="map" data-locations=[{"type":"Point","coordinates":[-106.855385,39.182677],"_id":"5c88fa8cf4afda39709c295c","description":"Aspen Highlands","day":1},{"type":"Point","coordinates":[-106.516623,39.60499],"_id":"5c88fa8cf4afda39709c295b","description":"Beaver Creek","day":2}].
+    //- it is stored in the dataset property and can be read by the js file 
+
     section.section-pictures
         each image,i in tour.images
             .picture-box
                 img.picture-box__img(src=`/img/tours/${image}`, alt=`${tour.name} Tour ${i+1}`, class=`picture-box__img--${i+1}`)
-        
+
     section.section-map
-        #map               
+        #map(data-locations =`${JSON.stringify(tour.locations)}`)               
     section.section-reviews 
-        .reviews    
-            .reviews__card  
-                .reviews__avatar
-                    img.reviews__avatar-img(src="/img/users/user-7.jpg", alt="bishal shah")
-                    h6.reviews__user Bishal shah
-                p.reviews__text Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quibusdam sequi totam incidunt soluta dolorem nobis, recusandae quod, sint quas excepturi dolorum aliquam! Maiores dolorem beatae hic consequuntur deserunt possimus amet!
-                .reviews__rating
-                    svg.reviews__star.reviews__star--active(use xlink:href="/img/icons.svg#icon-star")
-                .reviews__rating
-                    svg.reviews__star.reviews__star--active(use xlink:href="/img/icons.svg#icon-star")
-                .reviews__rating
-                    svg.reviews__star.reviews__star--active(use xlink:href="/img/icons.svg#icon-star")
-                .reviews__rating
-                    svg.reviews__star.reviews__star--active(use xlink:href="/img/icons.svg#icon-star")
-                .reviews__rating
-                    svg.reviews__star.reviews__star--active(use xlink:href="img/icons.svg#icon-star")
+        .reviews
+            each review in tour.reviews 
+                +reviewCard(review)   
+
     section.section-cta
         .cta
             .cta__img.cta__img--logo
                 img(src="/img/logo-white.png", alt="Natours logo")
-            img.cta__img.cta__img--1(src="/img/tours/tour-5-2.jpg")
-            img.cta__img.cta__img--1(src="/img/tours/tour-5-1.jpg")
+            each image in tour.images    
+                img.cta__img.cta__img--1(src=`/img/tours/${image}`)
             .cta__content
                 h2.heading-secondary What ar you waiting for?
-                p.cta__text 10 days. 1 adventure. Infinite memories. Make it yours today!
+                p.cta__text= `${tour.duration} days 1 adventure. Infinite memories. Make it yours today!`
                 button.btn.btn--green.span-all-rows Book tour now!          
 
 

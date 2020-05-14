@@ -1,0 +1,17 @@
+//- ussing the mixin process to follow dry  label is description
+//- use mixin nameoffunction(parameter which needs to pass down)
+//- to create the rating we have to loop over star but where so create lopp of 1-5. green has active class wheras grey doesnot have
+//- if we have 3 star out of 5 so 1 is less than 3 so active and in 4 it becomes inactive
+//- the number in the loop defines how many star here it is 5 so 5 star 
+
+mixin reviewCard(review)
+    .reviews__card  
+        .reviews__avatar
+            img.reviews__avatar-img(src=`/img/users/${review.user.photo}`, alt=`${review.user.name}`)
+            h6.reviews__user=review.user.name
+        p.reviews__text= review.review
+        .reviews__rating
+            each star in [1,2,3,4,5]
+            
+                svg.reviews__star(class=`reviews__star--${review.rating >= star ? 'active':'inactive'  }`)
+                    use(xlink:href="/img/icons.svg#icon-star")

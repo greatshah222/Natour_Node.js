@@ -1,5 +1,6 @@
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utilis/catchAsync');
+const appError = require('./../utilis/appError');
 
 exports.getOverview = catchAsync(async (req, res, next) => {
   // 1 get all the tour data from the collection
@@ -27,7 +28,13 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
   // 3 render that template using tour date from 1)
   res.status(200).render('tour', {
-    title: 'All tours',
+    title: tour.name,
     tour: tour,
+  });
+});
+
+exports.getLoginForm = catchAsync(async (req, res, next) => {
+  res.status(200).render('login', {
+    title: 'Log into your account',
   });
 });
