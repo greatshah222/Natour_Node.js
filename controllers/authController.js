@@ -109,15 +109,18 @@ exports.protect = catchAsync(async (req, res, next) => {
   // the token is ssent by the header so in the key it usuallu have authorization and and in value it have Bearer (token)
   // so authorization  Bearer (token)
   // to get token we can split it by space
+  // if the token is not found in req.headers check it in req.cookies.jwt cause in the browser it is saved in jwt
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     // we wanted to use token here but cant assign it here cause let and const are block scope
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
-  //console.log(token);
   if (!token) {
+    //console.log(token);
     return next(
       new AppError('You are not logged in.Please login to get access.', 401)
     );
@@ -291,4 +294,34 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
   createSendToken(user, 201, res);
   // log user again with new pwd
+});
+
+// to check if the user is logged in or not. there will never be an error since it is for rendered page
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  // token comes from cookie in browser
+  // 1 verify the token
+  if (req.cookies.jwt) {
+    const decoded = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET
+    );
+    // check user still exist
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return next();
+    }
+    // check if user recently changed their password
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+
+    // there is a loogeed in user
+    // make it accessible to template
+    // put res.locals.anyvariable then in the pug template there will be a variable called user. every pug template has res.locals
+    res.locals.user = currentUser;
+    //console.log(req.user);
+    return next();
+  }
+  // if there is no cookie
+  next();
 });

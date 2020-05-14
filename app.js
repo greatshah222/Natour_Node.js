@@ -14,6 +14,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 // npm i hpp for not allowing parameter pollution
+const cookieParser = require('cookie-parser');
+// npm i cookie-parser for parsing all the cookie from incoming response
 
 const AppError = require('./utilis/appError');
 const gobalErrorhandler = require('./controllers/errorController');
@@ -68,6 +70,9 @@ app.use('/api', limiter);
 // here we are limiting the data to 10kb not necessary but just for protection
 app.use(express.json({ limit: '10kb' }));
 
+// using cookie parser parses the data from the cookie wheras express.json parses the data from body
+app.use(cookieParser());
+
 // clean the data i.e data sanitization against NoSQL query injection
 // for example we know the pwd of some account but not the user_id we can type {"gt":""} to gain access cause this will always be true '
 // to solve this problem
@@ -108,6 +113,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   //console.log(req.headers);
+  console.log(req.cookies);
 
   next();
 });
