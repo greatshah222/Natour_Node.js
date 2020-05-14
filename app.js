@@ -20,6 +20,7 @@ const gobalErrorhandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
 // using pug for rendiering htm pages
@@ -136,18 +137,8 @@ app.use((req, res, next) => {
 // using the router to break the route into indicidual file so they dont break the code when writting big long code
 
 // tourROuter and user  here is a middleware so that we can use here app.use like any other middleware enlisted above
-
-// rendering html
-// get(url) and instead of json use render(name of file no extension)
-// node will go into the folder mentioned above that is views and then go to base
-// the variabe passed from here like the tour and user called locals in the pug data
-app.get('/', (req, res) => {
-  res.status(200).render('base', {
-    tour: 'The Forest Hiker',
-    user: 'Bishal',
-  });
-});
-
+// render html
+app.use('/', viewRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/reviews', reviewRouter);
