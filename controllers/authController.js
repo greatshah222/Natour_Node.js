@@ -25,6 +25,7 @@ const createSendToken = (user, statusCode, res) => {
   // secure is true means it will only be sent in https
   // cookies can not be modified by browser when we use httpOnly
   // we are sepearating this into separate variable because this will only work in https and not in postman or localhost
+  // we cannot manipulate or delete cookies
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
@@ -171,6 +172,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // grant access to protected route
   req.user = currentUser;
+  res.locals.user = currentUser;
+
   //console.log(req.user);
   next();
 });
@@ -281,7 +284,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1 get user from the collection
   // it gets req.user.id from previous middleware
-  const user = await await User.findById(req.user.id).select('+password');
+  const user = await User.findById(req.user.id).select('+password');
   // 2 check if posted pwd is correct
 
   if (!(await user.correctPassword(req.body.currentPassword, user.password))) {
@@ -297,31 +300,46 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 });
 
 // to check if the user is logged in or not. there will never be an error since it is for rendered page
-exports.isLoggedIn = catchAsync(async (req, res, next) => {
+exports.isLoggedIn = async (req, res, next) => {
   // token comes from cookie in browser
   // 1 verify the token
   if (req.cookies.jwt) {
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET
-    );
-    // check user still exist
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
-      return next();
-    }
-    // check if user recently changed their password
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
+    try {
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+      // check user still exist
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+      // check if user recently changed their password
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
 
-    // there is a loogeed in user
-    // make it accessible to template
-    // put res.locals.anyvariable then in the pug template there will be a variable called user. every pug template has res.locals
-    res.locals.user = currentUser;
-    //console.log(req.user);
-    return next();
+      // there is a loogeed in user
+      // make it accessible to template
+      // put res.locals.anyvariable then in the pug template there will be a variable called user. every pug template has res.locals
+      res.locals.user = currentUser;
+      //console.log(req.user);
+      return next();
+    } catch (err) {
+      return next();
+    }
   }
   // if there is no cookie
   next();
-});
+};
+
+// for logout user. we cannot delete or manipulate cookies so what we do is when user logout we send new cookie with no token and quich expiration time// give the exact same name jwt
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 100 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    status: 'success',
+  });
+};
