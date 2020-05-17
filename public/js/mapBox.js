@@ -1,5 +1,7 @@
 /* eslint-disable */
 // we are disabling eslint cause it is configured for node.js
+// we dont have to do axax request cause we already have ll the tour data in our tour page so we can convert it to string so js can read from the html
+// getting the location from the data-attribute property defined in the map section by converting it to string and then also defining the data attribute property of data-locations.it is stored in dataset.name so dataset.locations as defined in the tour pug.It is string so converting it back to json
 
 export const displayMap = (locations) => {
   //container:'map' means it will put  in the element with the id map that is why in the tour section(section-map) we have element with id of map
@@ -18,6 +20,7 @@ export const displayMap = (locations) => {
   // example var llb = new mapboxgl.LngLatBounds(sw, ne);
   const bounds = new mapboxgl.LngLatBounds();
   // loc has cordinates and by defauly in mapbox it needs to be an array
+  // we are looping through all the location so that we can add it to the map
   locations.forEach((loc) => {
     // create  marker to that location
     const el = document.createElement('div');

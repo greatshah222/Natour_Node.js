@@ -2,6 +2,7 @@ extends base
 include _reviewCard
 //- whatever we write in the block head will be appended not overwritten like other block cause we have specified append(at the end)
 //- for mapbox useing the script u need to login and get it from there
+//- we are integrating the mapbox on this page and not on base pug cause it will run only on this file
 block append head
     script(src='https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js')
     link(href='https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css' rel='stylesheet')
@@ -69,11 +70,18 @@ block content
     //- in the pug loop we can define a sceond variable which is called index  which is here called i  
     //- our location is an array so transferring into string and there data-location is the attribute property by using JSON.stringify so it will be div id="map" data-locations=[{"type":"Point","coordinates":[-106.855385,39.182677],"_id":"5c88fa8cf4afda39709c295c","description":"Aspen Highlands","day":1},{"type":"Point","coordinates":[-106.516623,39.60499],"_id":"5c88fa8cf4afda39709c295b","description":"Beaver Creek","day":2}].
     //- it is stored in the dataset property and can be read by the js file 
+    //-we dont have to do axax request cause we already have ll the tour data in our tour page so we can convert it to string so js can read from the html in map section
+    //- we also have defined the data attribute that is data-locations(name) so that it can be read by js file.In html we cannot have array or object juct string that is why we have transferred it to string
+    //- it will be like this <div id="mao" data-locations="[{"type":"Point","coordinates":[-80.128473,25.781842],"_id":"5c88fa8cf4afda39709c2959","description":"Lummus Park Beach","day":1},{"type":"Point","coordinates":[-80.647885,24.909047],"_id":"5c88fa8cf4afda39709c2958","description":"Islamorada","day":2},{"type":"Point","coordinates":[-81.0784,24.707496],"_id":"5c88fa8cf4afda39709c2957","description":"Sombrero Beach","day":3},{"type":"Point","coordinates":[-81.768719,24.552242],"_id":"5c88fa8cf4afda39709c2956","description":"West Key","day":5}]"
 
     section.section-pictures
         each image,i in tour.images
             .picture-box
                 img.picture-box__img(src=`/img/tours/${image}`, alt=`${tour.name} Tour ${i+1}`, class=`picture-box__img--${i+1}`)
+
+
+
+
 
     section.section-map
         #map(data-locations =`${JSON.stringify(tour.locations)}`)               
