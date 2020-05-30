@@ -1,8 +1,73 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utilis/apiFeature');
 const AppError = require('./../utilis/appError');
 const catchAsync = require('./../utilis/catchAsync');
 const factory = require('./handlerFactory');
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('not an image.please upload an image', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+//.fields cause we have multiple image
+// upload.single('image'); only single image req.file
+// upload.array('images', 5);  req.files multiple image but same field
+// req.files upload.fields([
+//   { name: 'imageCover', maxCount: 1 },
+//   { name: 'images', maxCount: 3 },
+// ]); mix fields
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+// process the image
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  // req.files if we have more than 1 file
+  if (!req.files.imageCover || !req.files.images) {
+    return next();
+  }
+  console.log(req.files);
+  // 1 process cover images
+  const imageCoverFilename = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${imageCoverFilename}`);
+  // we are updating the whole req.body in tour update function so it can be passed as req.body.imageCover. save only filename in db
+  req.body.imageCover = imageCoverFilename;
+  // 2) other images
+  // since the images is an array
+  // we need to push filename into the array so
+  req.body.images = [];
+  // here async is only in the callback of only 1 foreach loop which will not stop the process from going down so we have to use map mehtod which gives the array and then use promise.all
+  await Promise.all(
+    req.files.images.map(async (fileRandomName, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+      await sharp(fileRandomName.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+      req.body.images.push(filename);
+    })
+  );
+  console.log(req.body);
+  next();
+});
+
 // for top-five-tours
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5'; // cause the req is string

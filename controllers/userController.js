@@ -53,7 +53,7 @@ const upload = multer({
 // middleware for multer
 exports.uploadUserPhoto = upload.single('photo');
 // resizing the image of userphoto. we will add this middleware before our updateMe so that it can resize image
-exports.resizeUserPhoto = (req, res, next) => {
+exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   // we have file on our request
   if (!req.file) {
     return next();
@@ -62,13 +62,13 @@ exports.resizeUserPhoto = (req, res, next) => {
   // .jpeg cause we are resizing the format to .jpeg
   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
   // reading the file from buffer saved to the memory. we need square image so 500*500, changing the image format to jpeg and then quality of image is 90% of original and then write the file to the disk cause we no longer have where to store the file like in the multer disk storage .toFile(entire path)
-  sharp(req.file.buffer)
+  await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toFile(`public/img/users/${req.file.filename}`);
   next();
-};
+});
 // here obj= req.body
 // allowedFields = email,name
 const filterObj = (obj, ...allowedFields) => {

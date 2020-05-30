@@ -5,7 +5,8 @@ const jwt = require('jsonwebtoken');
 const AppError = require('./../utilis/appError');
 
 const catchAsync = require('./../utilis/catchAsync');
-const sendEmail = require('./../utilis/email');
+//const sendEmail = require('./../utilis/email');
+const Email = require('./../utilis/email');
 
 const User = require('./../models/usermodel');
 
@@ -67,6 +68,9 @@ exports.signup = catchAsync(async (req, res, next) => {
   //   const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
   //     expiresIn: process.env.JWT_EXPIRES_IN,
   //   });
+  const url = `${req.protocol}:${req.get('host')}/me`;
+  console.log(url);
+  await new Email(newUser, url).sendWelcome();
   createSendToken(newUser, 201, res);
   //   const token = signToken(newUser._id);
   //   // token no longer valid after proceess.env.JWT_EXPIRES_IN
@@ -213,9 +217,18 @@ exports.forgotPassword = async (req, res, next) => {
   const resetURL = `${req.protocol}://${req.get(
     'host'
   )}/api/v1/users/resetPassword/${resetToken}`;
-  const message = `Forgot your password? Click the link to create a new one by clicking \n ${resetURL} \n please ignore the message if you did not request it `;
+  // const message = `Forgot your password? Click the link to create a new one by clicking \n ${resetURL} \n please ignore the message if you did not request it `;
   // we need try catch for this
   try {
+    await new Email(user, resetURL).sendPasswordReset();
+    res.status(200).json({
+      status: 'success',
+      message: 'Please Check your Email',
+    });
+    /*
+
+    we created a class so not valid anymore
+
     await sendEmail({
       email: user.email,
       subject: 'Your password reset token(Valid for 10 Minutes) ',
@@ -225,6 +238,7 @@ exports.forgotPassword = async (req, res, next) => {
       status: 'success',
       message: 'Please Check your Email',
     });
+     */
   } catch (err) {
     // if there is error sending the email we have to simply reset the field of token and Expires so setting to undefined will do the trick
     user.passwordResetToken = undefined;
