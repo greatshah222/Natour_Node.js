@@ -19,6 +19,7 @@ export const updateSettings = async (data, type) => {
     });
     // if the status is success we want to redirect user after 1.5 s so location.assign
     if (res.data.status === 'success') {
+      location.reload(true);
       showAlert('success', ` ${type.toUpperCase()} updated successfully`);
     }
     console.log(res);

@@ -8603,6 +8603,7 @@ var updateSettings = /*#__PURE__*/function () {
 
             // if the status is success we want to redirect user after 1.5 s so location.assign
             if (res.data.status === 'success') {
+              location.reload(true);
               (0, _alert.showAlert)('success', " ".concat(type.toUpperCase(), " updated successfully"));
             }
 
@@ -8933,13 +8934,19 @@ if (logOutBtn) {
 
 if (updateUserForm) {
   updateUserForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var name = document.getElementById('name').value;
-    var email = document.getElementById('email').value;
-    (0, _updateSettings.updateSettings)({
-      name: name,
-      email: email
-    }, 'data');
+    e.preventDefault(); // for images upload if we dont use html form direct here we are using this api so to add the entype=multipart
+
+    var form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value); // photo is in array so .files[0]
+
+    form.append('photo', document.getElementById('photo').files[0]);
+    console.log(form); // const name = document.getElementById('name').value;
+    // const email = document.getElementById('email').value;
+    // updateSettings({ name, email }, 'data');
+    // for adding images
+
+    (0, _updateSettings.updateSettings)(form, 'data');
   });
 }
 

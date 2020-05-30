@@ -31,7 +31,8 @@ block content
         .user-view__form-container
           h2.heading-secondary.ma-bt-md Your account settings
           //- WITHOUT API
-          //-form.form.form-user-data(action='/submit-user-data' method='POST')
+          //-form.form.form-user-data(action='/submit-user-data' method='POST' enctype='multipart/form-data')
+          //- accept='image/*' means all the mimetype staring with image. remember also to give the name attribute here in case photo since we have defined them in usermodel and as well as in the multer
           
           form.form.form-user-data
             .form__group
@@ -42,7 +43,9 @@ block content
               input#email.form__input(type='email', value=`${user.email}`, required name='email')
             .form__group.form__photo-upload
               img.form__user-photo(src=`img/users/${user.photo}`, alt=`${user.name}`)
-              a.btn-text(href='') Choose new photo
+              input.form__upload#photo(type="file",accept='image/*',name='photo')
+              label(for='photo') Choose New Photo
+
             .form__group.right
               button.btn.btn--small.btn--green Save settings
 
