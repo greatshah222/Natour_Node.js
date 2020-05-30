@@ -8536,7 +8536,7 @@ var logout = /*#__PURE__*/function () {
 
             // reload(true) means it will reload from the server not from the browser or cache
             if (res.data.status = 'success') {
-              location.reload(true);
+              location.assign('/');
             }
 
             _context2.next = 10;
@@ -9013,7 +9013,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49817" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58303" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

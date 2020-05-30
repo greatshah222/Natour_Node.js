@@ -120,7 +120,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.get('/', (req, res) => {
+// axp.get('/', (req, res) => {
 //     res.status(200).json({ message: 'Hello from the server side', app: 'natours' });
 
 // })

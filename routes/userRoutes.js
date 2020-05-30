@@ -1,7 +1,13 @@
 const express = require('express');
+const multer = require('multer');
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
 const reviewController = require('./../controllers/reviewController');
+// where to save the images from the multer and dest is destination
+// if u dont define the dest it will be saved in memory and not in destination
+// images are not saved in db but just their names
+// .upload is just to define some settings
+const upload = multer({ dest: 'public/img/users' });
 
 const router = express.Router();
 router.post('/signup', authController.signup);
@@ -15,7 +21,13 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
-router.patch('/updateMe', authController.protect, userController.updateMe);
+// upload.single cause we are uploading single photo and then photo is the field name.upload is just to define some settings
+router.patch(
+  '/updateMe',
+  upload.single('photo'),
+  authController.protect,
+  userController.updateMe
+);
 router.delete('/deleteMe', authController.protect, userController.deleteMe);
 
 router

@@ -37,7 +37,7 @@ export const logout = async () => {
     });
     // reload(true) means it will reload from the server not from the browser or cache
     if ((res.data.status = 'success')) {
-      location.reload(true);
+      location.assign('/');
     }
   } catch (err) {
     showAlert('error', 'Error logging out! try again ');

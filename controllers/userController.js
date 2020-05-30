@@ -30,6 +30,22 @@ exports.getAllUsers = factory.getAll(User);
 // });
 // we have differnet place for updating the userdetail and password
 exports.updateMe = catchAsync(async (req, res, next) => {
+  console.log(req.file);
+  // { this is req.file
+  //   Cookie_1: 'value',
+  //   jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGExZjI5MmY4ZmI4MTRiNTZmYTE4NCIsImlhdCI6MTU5MDgzNDQxMiwiZXhwIjoxNTk4NjEwNDEyfQ.fWF-FYF2JftokAa_-6BS69BDdngwxxmk3P9TyeqWrBI'
+  // }
+  // {
+  //   fieldname: 'photo',
+  //   originalname: 'user-6.jpg',
+  //   encoding: '7bit',
+  //   mimetype: 'image/jpeg',
+  //   destination: 'public/img/users',
+  //   filename: 'd73115752f62ac0259439260489f7628',
+  //   path: 'public/img/users/d73115752f62ac0259439260489f7628',
+  //   size: 6400
+  // }
+  console.log(req.body);
   // 1 create an error if user try to update and pwd from here
   if (req.body.password || req.body.passwordConfirm) {
     return next(new AppError('You cannot modify password from here', 400));
