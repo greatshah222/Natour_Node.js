@@ -9,4 +9,14 @@ router.get(
   authController.protect,
   bookingController.getCheckoutSession
 );
+
+router
+  .route('/')
+  .get(authController.protect, bookingController.getAllBooking)
+  .post(authController.protect, bookingController.createBooking);
+router
+  .route('/:id')
+  .get(authController.protect, bookingController.getBooking)
+  .delete(authController.protect, bookingController.deleteBooking)
+  .patch(authController.protect, bookingController.updateBooking);
 module.exports = router;

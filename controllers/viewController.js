@@ -2,6 +2,7 @@ const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utilis/catchAsync');
 const AppError = require('./../utilis/appError');
 const User = require('./../models/usermodel');
+const Booking = require('../models/bookingModel');
 
 exports.getOverview = catchAsync(async (req, res, next) => {
   // 1 get all the tour data from the collection
@@ -66,5 +67,20 @@ exports.updateUserData = catchAsync(async (req, res, next) => {
     title: 'Welcome to your account',
     // we need to pass user: updateduser else it will take old user from protect middleware
     user: updatedUser,
+  });
+});
+
+exports.getMyTours = catchAsync(async (req, res, next) => {
+  // 1) find all bookings
+  const bookings = await Booking.find({ user: req.user.id });
+  // 2) find tour with returned ids
+  // will create an array of tour id as tour is just the tourID
+  const tourIDs = bookings.map((el) => el.tour);
+  // it will find all the _id in the tourIDs
+  const tours = await Tour.find({ _id: { $in: tourIDs } });
+
+  res.status(200).render('overview', {
+    title: 'My tours',
+    tours: tours,
   });
 });

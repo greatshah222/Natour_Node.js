@@ -17,6 +17,7 @@ module.exports = class Email {
       // sendGrid same like gmail ONLY SERVICE AND AUTH
       // YOU CAN USE MAILSAC TO CREATE FAKE EMAIL ID
       // https://mailsac.com/ FOR SIGNUP CHECK
+      console.log('production');
       return nodemailer.createTransport({
         service: 'SendGrid',
         auth: {
