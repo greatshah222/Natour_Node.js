@@ -2,6 +2,7 @@
 // polyfill to let js work in old browser. it should be first line
 import '@babel/polyfill';
 import { displayMap } from './mapBox';
+import { bookTour } from './stripe';
 
 import { login, logout } from './login';
 import { updateSettings } from './updateSettings';
@@ -15,6 +16,7 @@ const logOutBtn = document.querySelector('.nav__el--logout');
 const updateUserForm = document.querySelector('.form-user-data');
 // for password change
 const updatePasswordForm = document.querySelector('.form-user-settings');
+const bookBtn = document.getElementById('book-tour');
 
 // values
 
@@ -76,5 +78,16 @@ if (updatePasswordForm) {
     document.getElementById('password').value = '';
     document.getElementById('password-confirm').value = '';
     document.getElementById('password-confirm').blur();
+  });
+}
+
+if (bookBtn) {
+  bookBtn.addEventListener('click', (e) => {
+    // remember all the dataset name are converted to lowercase even if u define it as TOURID which accessing it will be tourid
+    console.log(e.target.dataset.tourid);
+    e.target.textContent = 'Processing...';
+    const tourid = e.target.dataset.tourid;
+
+    bookTour(tourid);
   });
 }

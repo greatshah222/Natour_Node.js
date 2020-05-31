@@ -23,6 +23,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
+const bookingRouter = require('./routes/bookingRoutes');
 
 const app = express();
 // using pug for rendiering htm pages
@@ -150,6 +151,7 @@ app.use('/', viewRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/bookings', bookingRouter);
 
 // if the route is not defined we use middleware after our router cause if the route belonged to them it will not reach here. if it reached here it means the route is mistake.SO for all route use app.all and * means everything
 // ${req.originalUrl}   is the original input route by user
